@@ -2,82 +2,103 @@
 
 Easily add status to your models in Laravel 5.
 
-[![Latest Stable Version](https://poser.pugx.org/seriousjelly/laravel-draftable/v/stable)](https://packagist.org/packages/seriousjelly/laravel-draftable)
-[![Total Downloads](https://poser.pugx.org/seriousjelly/laravel-draftable/downloads)](https://packagist.org/packages/seriousjelly/laravel-draftable)
-[![Latest Unstable Version](https://poser.pugx.org/seriousjelly/laravel-draftable/v/unstable)](https://packagist.org/packages/seriousjelly/laravel-draftable)
-[![License](https://poser.pugx.org/seriousjelly/laravel-draftable/license)](https://packagist.org/packages/seriousjelly/laravel-draftable)
+## 修改说明
 
-* [Installation and Requirements](#installation)
-* [Updating your Eloquent Models](#eloquent)
-* [Usage](#usage)
-* [Still To Do](#todo)
-* [Copyright and License](#copyright)
+1. `config/draftable.php` 配置增加 `status` 选项，增强扩展性。
+2. Model 增加 `drafts` 方法，仅查询所有草稿。
 
+## 安装及使用
 
-<a name="installation"></a>
-## Installation and Requirements
+1). 修改 `composer.json`, 在 `repositories` 数组内追加如下数据
 
+```
+    "repositories": [
+        ...
+        {
+            "type": "vcs",
+            "url":  "https://github.com/estgroupe-ext/laravel-draftable.git"
+        }
+    ]
+```
 
-1. Install the `seriousjelly/laravel-draftable` package via composer:
+2). 添加 `seriousjelly/laravel-draftable` package
 
-    ```shell
-    $ composer require seriousjelly/laravel-draftable
-    ```
+```shell
+    composer require estgroupe-ext/laravel-draftable
+```
 
-2. Add the service provider (`config/app.php` for Laravel 5):
+3). 修改 `config/app.php`, 在 `providers` 数组内追加如下数据
 
-    ```php
-    # Add the service provider to the `providers` array
+```php
     'providers' => array(
         ...
         'Seriousjelly\Draftable\ServiceProvider',
     )
-    ```
+```
 
-3. Ensure that your migrations contain a `status` column by copy & pasting the below into your table migration file:
+4). 生成 migrations, 使其包含 `status` 字段
 
-    ```php
-    # Add a status column to the table, feel free to change the default value.
-    $table->boolean('status')->default(0);
-    ```
-
-<a name="eloquent"></a>
-## Updating your Eloquent Models
-
-Your models should use Draftable's trait:
-
-```php
-use Seriousjelly\Draftable\DraftableTrait;
-
-class MyModel extends Model
+```
+class AddModeratioColumnsToPostsTable extends Migration
 {
-    use Draftable;
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::table('posts', function (Blueprint $table) {
+            $table->enum('status', [
+                config('draftable.status.drafts'),
+                config('draftable.status.publish')
+            ])->default(config('draftable.status.publish'));
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::table('posts', function(Blueprint $table)
+        {
+            $table->dropColumn('status');
+        });
+    }
 }
 ```
 
-Your model is now draftable!
-
-<a name="usage"></a>
-## Using this trait
-
-By default all records that have a status of 0 will be excluded from your query results. To include draft records, all you need to do is call the `withDrafts()` method on your query.
+5). 更新 Eloquent Models
 
 ```php
-// Returns only live data
-Posts::get();
+    use Seriousjelly\Draftable\DraftableTrait as Draftable;
 
-//Returns live & draft data
-Posts::withDrafts()->get();
+    class Post extends Model
+    {
+        use Draftable;
+    }
 ```
 
-<a name="todo"></a>
-## Still To Do
+6). 使用
 
-- Add onlyDrafts() method.
-- Add artisan command to create `status` column on a table you choose (i.e `php artisan draftable:table table_name`.
-- Allow the user to specify the column name in this package config (currently hardcoded to status).
+- 返回已发布的 posts
+```php
+    Post::get();
+```
 
-<a name="copyright"></a>
+- 返回包含草稿和已发布的 posts
+```php
+    Post::withDrafts()->get();
+```
+
+- 返回只是草稿的 posts
+```php
+    Post::drafts()->get();
+```
+
 ## Copyright and License
 
 Laravel-Draftable was written by Chris Bratherton and released under the MIT License. See the LICENSE file for details.
