@@ -1,5 +1,5 @@
 {
-  "name": "seriousjelly/laravel-draftable",
+  "name": "estgroupe-ext/laravel-draftable",
   "description": "A Eloquent Draftable trait for Laravel",
   "keywords": ["laravel", "draftable", "drafts", "status", "live", "eloquent"],
   "homepage": "http://www.seriousjelly.com",
