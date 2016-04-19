@@ -19,9 +19,10 @@ class DraftableScope implements ScopeInterface {
     {
         $column = $model->getQualifiedStatusColumn();
 
-        $builder->where($column, '=', 1);
+        $builder->where($column, '=', config('draftable.status.publish'));
 
         $this->addWithDrafts($builder);
+        $this->addDrafts($builder);
     }
 
     /**
@@ -111,7 +112,28 @@ class DraftableScope implements ScopeInterface {
         {
             $this->remove($builder, $builder->getModel());
 
-            return $builder;
+            return $builder->whereIN($this->getStatusColumn($builder),
+                [config('draftable.status.publish'), config('draftable.status.drafts')]);;
         });
+    }
+
+    /**
+     * Add the drafts extension to the builder.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $builder
+     *
+     * @return void
+     */
+    protected function addDrafts(Builder $builder)
+    {
+       $builder->macro('drafts', function (Builder $builder) {
+           $model = $builder->getModel();
+
+           $this->remove($builder, $model);
+
+           $builder->where($model->getQualifiedStatusColumn(), '=', config('draftable.status.drafts'));
+
+           return $builder;
+       });
     }
 }

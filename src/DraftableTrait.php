@@ -39,6 +39,16 @@ trait DraftableTrait {
      */
     public static function withDrafts()
     {
-        return with(new static)->newQueryWithoutScope(new DraftableScope);
+        return with(new static)->newQueryWithoutScope(new DraftableScope)->withDrafts();
+    }
+
+    /**
+     * Get a new query builder that only includes drafts resources.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    public static function drafts()
+    {
+        return with(new static)->newQueryWithoutScope(new DraftableScope)->drafts();
     }
 }

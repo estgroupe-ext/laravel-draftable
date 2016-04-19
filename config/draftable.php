@@ -4,4 +4,9 @@
  * Your package config would go here
  */
 
-return [];
+return [
+	'status' => [
+		'publish' => 'publish',
+		'drafts' => 'drafts'
+	]
+];
